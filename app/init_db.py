@@ -1,7 +1,6 @@
 import sqlite3
 import os
 
-# Ruta al archivo de la base de datos
 db_path = os.path.join(os.path.dirname(__file__), '../database/pedidos.db')
 
 def init_db():

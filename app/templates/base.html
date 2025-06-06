@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Despachos del Día</title>
+</head>
+<body>
+    <h1>Despachos del Día</h1>
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Pedido</th><th>Canal</th><th>Fecha</th>
+            <th>SKU</th><th>Color</th><th>Cantidad</th><th>Estado</th><th>Acción</th>
+        </tr>
+        {% for row in despachos %}
+        <tr>
+            <td>{{ row.pedido_id }}</td>
+            <td>{{ row.canal }}</td>
+            <td>{{ row.fecha }}</td>
+            <td>{{ row.sku }}</td>
+            <td>{{ row.color }}</td>
+            <td>{{ row.cantidad }}</td>
+            <td>{{ row.estado }}</td>
+            <td>
+                <form action="/actualizar_estado/{{ row.id }}/PICKEADO" method="POST" style="display:inline;">
+                    <button type="submit">✔️ Pickeado</button>
+                </form>
+                <form action="/actualizar_estado/{{ row.id }}/SIN STOCK" method="POST" style="display:inline;">
+                    <button type="submit">❌ Sin Stock</button>
+                </form>
+                <form action="/actualizar_estado/{{ row.id }}/ANULADO" method="POST" style="display:inline;">
+                    <button type="submit">🚫 Anulado</button>
+                </form>
+                <form action="/actualizar_estado/{{ row.id }}/NUEVO PICKING" method="POST" style="display:inline;">
+                    <button type="submit">🔁 Nuevo Picking</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <button onclick="location.href='/'">Volver a Inicio</button>
+</body>
+</html>

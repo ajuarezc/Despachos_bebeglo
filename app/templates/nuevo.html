@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nuevo Pedido</title>
+    <script>
+        function agregarFila() {
+            const fila = document.createElement("div");
+            fila.innerHTML = `
+                <input name="sku" placeholder="SKU" required>
+                <input name="color" placeholder="Color" required>
+                <input name="cantidad" type="number" placeholder="Cantidad" required>
+                <button type="button" onclick="this.parentNode.remove()">❌</button>
+                <br>
+            `;
+            document.getElementById("productos").appendChild(fila);
+        }
+    </script>
+</head>
+<body>
+    <h1>Ingresar Nuevo Pedido</h1>
+    <form method="POST">
+        <label>Canal: <input name="canal" required></label><br>
+        <label>Fecha: <input type="date" name="fecha" required></label><br><br>
+
+        <h3>Productos</h3>
+        <div id="productos">
+            <div>
+                <input name="sku" placeholder="SKU" required>
+                <input name="color" placeholder="Color" required>
+                <input name="cantidad" type="number" placeholder="Cantidad" required>
+                <button type="button" onclick="this.parentNode.remove()">❌</button>
+                <br>
+            </div>
+        </div>
+        <button type="button" onclick="agregarFila()">+ Agregar Producto</button><br><br>
+        <button type="submit">Guardar Pedido</button>
+    </form>
+
+    <br>
+    <button onclick="location.href='/'">Volver a Inicio</button>
+</body>
+</html>
