@@ -90,6 +90,12 @@
     {% endfor %}
 
     <br>
+
+    <!-- Botón Finalizar Día -->
+    <form action="{{ url_for('main.finalizar_dia') }}" method="POST" onsubmit="return confirm('¿Seguro que deseas finalizar el día? Se exportarán y eliminarán todos los pedidos del día.');">
+        <button style="background-color: #dc3545; color: white; margin: 20px;">🗂️ Finalizar Día</button>
+    </form>
+
     <button onclick="location.href='/'">Volver a Inicio</button>
 
 </body>

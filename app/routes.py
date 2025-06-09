@@ -1,6 +1,8 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, send_file
 from .models import get_db
 from datetime import datetime
+import io
+import pandas as pd
 
 main = Blueprint('main', __name__)
 
@@ -15,14 +17,14 @@ def index():
         FROM pedidos p
         JOIN detalle_pedidos d ON p.id = d.pedido_id
         WHERE p.fecha = ?
-    """, (hoy,)).fetchone()["total"]
+    """, (hoy,)).fetchone()["total"] or 0
 
     pickeado = db.execute("""
         SELECT COUNT(DISTINCT p.id) as pickeado
         FROM pedidos p
         JOIN detalle_pedidos d ON p.id = d.pedido_id
         WHERE p.fecha = ? AND d.estado = 'PICKEADO'
-    """, (hoy,)).fetchone()["pickeado"]
+    """, (hoy,)).fetchone()["pickeado"] or 0
 
     return render_template("inicio.html", total=total, pickeado=pickeado)
 
@@ -117,3 +119,35 @@ def eliminar_pedido(pedido_id):
     db.execute("DELETE FROM pedidos WHERE id = ?", (pedido_id,))
     db.commit()
     return redirect(url_for("main.ver_despachos"))
+
+# Finalizar día: exportar y limpiar despachos del día
+@main.route("/finalizar-dia", methods=["POST"])
+def finalizar_dia():
+    db = get_db()
+    hoy = datetime.today().date()
+
+    cursor = db.execute("""
+        SELECT p.id AS pedido_id, p.canal, p.fecha,
+               d.sku, d.color, d.cantidad, d.estado
+        FROM pedidos p
+        JOIN detalle_pedidos d ON p.id = d.pedido_id
+        WHERE p.fecha = ?
+    """, (hoy,))
+    datos = cursor.fetchall()
+
+    if not datos:
+        return "No hay despachos del día para exportar.", 400
+
+    df = pd.DataFrame(datos)
+
+    output = io.BytesIO()
+    df.to_excel(output, index=False, sheet_name='Despachos del Día')
+    output.seek(0)
+
+    db.execute("DELETE FROM detalle_pedidos WHERE pedido_id IN (SELECT id FROM pedidos WHERE fecha = ?)", (hoy,))
+    db.execute("DELETE FROM pedidos WHERE fecha = ?", (hoy,))
+    db.commit()
+
+    nombre_archivo = f"Despachos_{hoy}.xlsx"
+    return send_file(output, as_attachment=True, download_name=nombre_archivo,
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
