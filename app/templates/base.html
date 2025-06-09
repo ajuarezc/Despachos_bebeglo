@@ -4,43 +4,167 @@
     <meta charset="UTF-8">
     <title>Despachos del Día</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .juntos {
+            font-weight: bold;
+            color: #dc3545;
+            margin-left: 10px;
+        }
+
+        .filtros {
+            margin-bottom: 20px;
+        }
+
+        .filtros select,
+        .filtros input[type="date"] {
+            margin: 0 10px;
+        }
+
+        .grupo-canal {
+            margin-top: 40px;
+        }
+
+        .subtabla {
+            margin-bottom: 30px;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .pedido-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .pedido-info {
+            font-size: 1.1em;
+            color: #007BFF;
+            font-weight: bold;
+        }
+
+        .btn-eliminar {
+            background: none;
+            border: none;
+            color: #dc3545;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .btn-eliminar:hover {
+            color: #a80000;
+        }
+
+        .estado-tag {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .estado-tag.pickeado { background-color: #28a745; }
+        .estado-tag.sin-stock { background-color: #dc3545; }
+        .estado-tag.anulado { background-color: #6c757d; }
+        .estado-tag.nuevo-picking { background-color: #ffc107; color: black; }
+        .estado-tag.picking { background-color: #17a2b8; }
+
+        select {
+            padding: 5px;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
+
     <h1>Despachos del Día</h1>
 
-    <table border="1" cellpadding="5">
-        <tr>
-            <th>Pedido</th><th>Canal</th><th>Fecha</th>
-            <th>SKU</th><th>Color</th><th>Cantidad</th><th>Estado</th><th>Acción</th>
-        </tr>
-        {% for row in despachos %}
-        <tr>
-            <td>{{ row.pedido_id }}</td>
-            <td>{{ row.canal }}</td>
-            <td>{{ row.fecha }}</td>
-            <td>{{ row.sku }}</td>
-            <td>{{ row.color }}</td>
-            <td>{{ row.cantidad }}</td>
-            <td>{{ row.estado }}</td>
-            <td>
-                <form action="/actualizar_estado/{{ row.id }}/PICKEADO" method="POST" style="display:inline;">
-                    <button type="submit">✔️ Pickeado</button>
+    <div class="filtros">
+        <form method="get">
+            <label>Canal:
+                <select name="canal">
+                    <option value="">Todos</option>
+                    <option value="Mercadolibre">Mercadolibre</option>
+                    <option value="Bebeglo.cl">Bebeglo.cl</option>
+                    <option value="Paris">Paris</option>
+                    <option value="Mercadolibre Flex">Mercadolibre Flex</option>
+                    <option value="Walmart">Walmart</option>
+                    <option value="Falabella">Falabella</option>
+                </select>
+            </label>
+
+            <label>Estado:
+                <select name="estado">
+                    <option value="">Todos</option>
+                    <option value="PICKING">PICKING</option>
+                    <option value="PICKEADO">PICKEADO</option>
+                    <option value="SIN STOCK">SIN STOCK</option>
+                    <option value="ANULADO">ANULADO</option>
+                    <option value="NUEVO PICKING">NUEVO PICKING</option>
+                </select>
+            </label>
+
+            <label>Fecha:
+                <input type="date" name="fecha">
+            </label>
+
+            <button type="submit">Filtrar</button>
+        </form>
+    </div>
+
+    {% for canal, pedidos_por_canal in despachos.items() %}
+    <div class="grupo-canal">
+        <h2>Canal: {{ canal }}</h2>
+
+        {% for pedido_id, datos in pedidos_por_canal.items() %}
+        <div class="subtabla" id="pedido-{{ pedido_id }}">
+            <div class="pedido-header">
+                <div class="pedido-info">
+                    Fecha: {{ datos[0].fecha }}{% if datos|length > 1 %}<span class="juntos">(JUNTOS)</span>{% endif %}
+                </div>
+                <form action="{{ url_for('main.eliminar_pedido', pedido_id=pedido_id) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar este pedido?');">
+                    <button class="btn-eliminar" title="Eliminar Pedido">❌</button>
                 </form>
-                <form action="/actualizar_estado/{{ row.id }}/SIN STOCK" method="POST" style="display:inline;">
-                    <button type="submit">❌ Sin Stock</button>
-                </form>
-                <form action="/actualizar_estado/{{ row.id }}/ANULADO" method="POST" style="display:inline;">
-                    <button type="submit">🚫 Anulado</button>
-                </form>
-                <form action="/actualizar_estado/{{ row.id }}/NUEVO PICKING" method="POST" style="display:inline;">
-                    <button type="submit">🔁 Nuevo Picking</button>
-                </form>
-            </td>
-        </tr>
+            </div>
+
+            <table>
+                <tr>
+                    <th>SKU</th><th>Color</th><th>Cantidad</th><th>Estado</th><th>Acción</th>
+                </tr>
+                {% for row in datos %}
+                <tr>
+                    <td>{{ row.sku }}</td>
+                    <td>{{ row.color }}</td>
+                    <td>{{ row.cantidad }}</td>
+                    <td>
+                        <span class="estado-tag {{ row.estado|lower|replace(' ', '-') }}">{{ row.estado }}</span>
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ url_for('main.actualizar_estado', detalle_id=row.id, nuevo_estado='__DYNAMIC__') }}#pedido-{{ row.pedido_id }}" onsubmit="return false;">
+                            <select onchange="this.form.action=this.form.action.replace('__DYNAMIC__', this.value); this.form.submit();">
+                                <option disabled selected>Cambiar Estado</option>
+                                <option value="PICKING">📦 Picking</option>
+                                <option value="PICKEADO">✔️ Pickeado</option>
+                                <option value="SIN STOCK">❌ Sin Stock</option>
+                                <option value="ANULADO">🚫 Anulado</option>
+                                <option value="NUEVO PICKING">🔁 Nuevo Picking</option>
+                            </select>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
         {% endfor %}
-    </table>
+    </div>
+    {% endfor %}
 
     <br>
     <button onclick="location.href='/'">Volver a Inicio</button>
+
 </body>
 </html>
