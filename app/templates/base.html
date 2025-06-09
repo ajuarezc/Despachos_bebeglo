@@ -42,55 +42,53 @@
             <button type="submit">Filtrar</button>
         </form>
 
-        <!-- Botón Finalizar Día -->
-        <form method="POST" action="/finalizar_dia" style="margin-top: 15px;" onsubmit="return confirm('¿Estás seguro de finalizar el día? Esto eliminará los pedidos de hoy y los exportará a Excel.');">
-            <button type="submit">📦 Finalizar Día</button>
-        </form>
+        <div style="margin-top: 15px; display: flex; gap: 10px;">
+            <form method="POST" action="/finalizar_dia" onsubmit="return confirm('¿Estás seguro de finalizar el día? Esto eliminará los pedidos de hoy y los exportará a Excel.');">
+                <button type="submit">📦 Finalizar Día</button>
+            </form>
+
+            <button onclick="location.href='/nuevo'">➕ Nuevo Pedido</button>
+        </div>
     </div>
 
     {% for canal, pedidos_por_canal in despachos.items() %}
-    <div class="canal-card">
-        <h2>{{ canal }} <span style="font-size: 0.8em; color: #555;">({{ pedidos_por_canal|length }} pedido{{ pedidos_por_canal|length > 1 and 's' or '' }})</span></h2>
+    <div class="canal-card" data-canal="{{ canal }}">
+        <h2>{{ canal }} 
+            <span style="font-size: 0.8em; color: #555;">
+                ({{ pedidos_por_canal|length }} pedido{{ pedidos_por_canal|length > 1 and 's' or '' }})
+            </span>
+        </h2>
 
         {% for pedido_id, datos in pedidos_por_canal.items() %}
-        <div class="subtabla" id="pedido-{{ pedido_id }}">
-            <div class="pedido-header">
-                <div class="pedido-info">
-                    Fecha: {{ datos[0].fecha }}{% if datos|length > 1 %}<span class="juntos">(JUNTOS)</span>{% endif %}
-                </div>
-                <form action="{{ url_for('main.eliminar_pedido', pedido_id=pedido_id) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar este pedido?');">
+        <div class="pedido-card">
+            <div class="pedido-header" style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;">
+                {% if datos|length > 1 %}
+                <span class="juntos">(JUNTOS)</span>
+                {% endif %}
+                <form action="{{ url_for('main.eliminar_pedido', pedido_id=pedido_id) }}" method="POST" onsubmit="return confirm('¿Eliminar este pedido?');">
                     <button class="btn-eliminar" title="Eliminar Pedido">❌</button>
                 </form>
             </div>
 
-            <table>
-                <tr>
-                    <th>SKU</th><th>Color</th><th>Cantidad</th><th>Estado</th><th>Acción</th>
-                </tr>
+            <div class="productos">
                 {% for row in datos %}
-                <tr>
-                    <td class="sku">{{ row.sku }}</td>
-                    <td>{{ row.color }}</td>
-                    <td>{{ row.cantidad }}</td>
-                    <td>
-                        <span class="estado-tag {{ row.estado|lower|replace(' ', '-') }}">{{ row.estado }}</span>
-                    </td>
-                    <td>
-                        <form method="POST" action="{{ url_for('main.actualizar_estado', detalle_id=row.id, nuevo_estado='__DYNAMIC__') }}#pedido-{{ row.pedido_id }}" onsubmit="return false;">
-                            <select onchange="this.form.action=this.form.action.replace('__DYNAMIC__', this.value); this.form.submit();">
-                                <option disabled selected>Cambiar Estado</option>
-                                <option value="PICKING">📦 Picking</option>
-                                <option value="PICKEADO">✔️ Pickeado</option>
-                                <option value="ENTREGADO">📬 Entregado</option>
-                                <option value="SIN STOCK">❌ Sin Stock</option>
-                                <option value="ANULADO">🚫 Anulado</option>
-                                <option value="NUEVO PICKING">🔁 Nuevo Picking</option>
-                            </select>
-                        </form>
-                    </td>
-                </tr>
+                <div class="producto-linea">
+                    <div class="sku">{{ row.sku }}</div>
+                    <div class="detalle">{{ row.color }} - {{ row.cantidad }} und.</div>
+                    <div class="estado-tag {{ row.estado|lower|replace(' ', '-') }}">{{ row.estado }}</div>
+
+                    <select class="estado-select" data-detalle-id="{{ row.id }}">
+                        <option disabled selected>⏬ Estado</option>
+                        <option value="PICKING">📦 Picking</option>
+                        <option value="PICKEADO">✔️ Pickeado</option>
+                        <option value="ENTREGADO">📬 Entregado</option>
+                        <option value="SIN STOCK">❌ Sin Stock</option>
+                        <option value="ANULADO">🚫 Anulado</option>
+                        <option value="NUEVO PICKING">🔁 Nuevo Picking</option>
+                    </select>
+                </div>
                 {% endfor %}
-            </table>
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -98,6 +96,45 @@
 
     <br>
     <button onclick="location.href='/'">Volver a Inicio</button>
+
+    <!-- JavaScript AJAX para actualizar estados -->
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const selects = document.querySelectorAll(".estado-select");
+
+        selects.forEach(select => {
+            select.addEventListener("change", function () {
+                const detalleId = this.dataset.detalleId;
+                const nuevoEstado = this.value;
+
+                fetch("/actualizar_estado", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        detalle_id: detalleId,
+                        nuevo_estado: nuevoEstado
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log(`Estado actualizado correctamente a ${nuevoEstado}`);
+                        // Opcional: actualizar texto o clase visual
+                        this.previousElementSibling.textContent = nuevoEstado;
+                        this.previousElementSibling.className = "estado-tag " + nuevoEstado.toLowerCase().replace(" ", "-");
+                    } else {
+                        alert("Error al actualizar el estado");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error en la solicitud:", error);
+                });
+            });
+        });
+    });
+    </script>
 
 </body>
 </html>

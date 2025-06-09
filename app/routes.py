@@ -103,13 +103,18 @@ def nuevo_pedido():
 
     return render_template("nuevo.html")
 
-# Cambiar estado de un producto
-@main.route("/actualizar_estado/<int:detalle_id>/<string:nuevo_estado>", methods=["POST"])
-def actualizar_estado(detalle_id, nuevo_estado):
+# ✅ Cambiar estado sin recargar (AJAX con JSON)
+@main.route("/actualizar_estado", methods=["POST"])
+def actualizar_estado():
+    data = request.get_json()
+    detalle_id = data.get("detalle_id")
+    nuevo_estado = data.get("nuevo_estado")
+
     db = get_db()
     db.execute("UPDATE detalle_pedidos SET estado = ? WHERE id = ?", (nuevo_estado, detalle_id))
     db.commit()
-    return redirect(url_for("main.ver_despachos"))
+
+    return jsonify({"success": True})
 
 # Eliminar un pedido completo
 @main.route("/eliminar_pedido/<int:pedido_id>", methods=["POST"])
@@ -126,7 +131,6 @@ def finalizar_dia():
     db = get_db()
     hoy = datetime.today().date()
 
-    # Obtener todos los pedidos del día
     rows = db.execute("""
         SELECT p.id AS pedido_id, p.canal, p.fecha,
                d.sku, d.color, d.cantidad, d.estado
@@ -138,16 +142,13 @@ def finalizar_dia():
     if not rows:
         return "No hay pedidos para finalizar hoy.", 400
 
-    # Convertir a DataFrame
     df = pd.DataFrame(rows, columns=rows[0].keys())
 
-    # Exportar a archivo Excel en memoria
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         df.to_excel(writer, index=False, sheet_name="Despachos del Día")
     output.seek(0)
 
-    # Eliminar los pedidos del día
     pedido_ids = set(row["pedido_id"] for row in rows)
     for pid in pedido_ids:
         db.execute("DELETE FROM detalle_pedidos WHERE pedido_id = ?", (pid,))
@@ -161,7 +162,7 @@ def finalizar_dia():
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-# Obtener color por SKU (autocompletado)
+# Obtener color por SKU
 @main.route("/obtener_color")
 def obtener_color():
     sku = request.args.get("sku")

@@ -20,136 +20,193 @@ button {
     border: none;
     color: white;
     padding: 10px 15px;
-    margin: 5px;
+    margin: 5px 0;
     cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.3s;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
     background-color: #0056b3;
 }
 
-.btn-eliminar {
-    background: none;
-    border: none;
-    color: #dc3545;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 4px 8px;
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
 }
 
-.btn-eliminar:hover {
-    color: #a80000;
+.filtros {
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 1200px;
 }
 
+.filtros form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.filtros label {
+    display: flex;
+    flex-direction: column;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="number"],
+select {
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input:focus,
+select:focus {
+    border-color: #007BFF;
+    outline: none;
+}
+
+/* Más ancho */
 .canal-card {
     margin: 40px auto;
-    max-width: 1000px;
+    max-width: 1200px;
     background: white;
-    padding: 25px;
+    padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+}
+
+/* Fondo por canal */
+.canal-card[data-canal="Mercadolibre"] {
+    background-color: #fff8e1;
+}
+.canal-card[data-canal="Bebeglo.cl"] {
+    background-color: #e1f5fe;
+}
+.canal-card[data-canal="Paris"] {
+    background-color: #f3e5f5;
+}
+.canal-card[data-canal="Mercadolibre Flex"] {
+    background-color: #fbe9e7;
+}
+.canal-card[data-canal="Walmart"] {
+    background-color: #e8f5e9;
+}
+.canal-card[data-canal="Falabella"] {
+    background-color: #ede7f6;
 }
 
 .canal-card h2 {
-    font-size: 24px;
     color: #2c3e50;
     margin-bottom: 20px;
-    border-left: 4px solid #007BFF;
-    padding-left: 10px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
 }
 
-.subtabla {
-    margin-bottom: 30px;
-    border: 1px solid #ccc;
-    padding: 15px;
+.pedido-card {
+    background: #fff;
     border-radius: 10px;
-    background-color: #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: box-shadow 0.3s ease;
+}
+
+.pedido-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .pedido-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
 }
 
-.pedido-info {
-    font-size: 1.1em;
-    color: #007BFF;
+.productos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.producto-linea {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr 2fr;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.producto-linea:last-child {
+    border-bottom: none;
+}
+
+.sku {
     font-weight: bold;
+    font-size: 1.2em;
+    color: #333;
 }
 
+.detalle {
+    color: #555;
+}
+
+.select-estado {
+    padding: 6px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 100%;
+}
+
+/* Estado colores */
 .estado-tag {
     padding: 4px 8px;
     border-radius: 4px;
-    font-weight: bold;
     color: white;
     font-size: 0.9em;
+    font-weight: bold;
+    text-align: center;
+    min-width: 100px;
+    display: inline-block;
 }
 
 .estado-tag.pickeado {
     background-color: #28a745;
 }
-
-.estado-tag.sin-stock {
-    background-color: #dc3545;
-}
-
-.estado-tag.anulado {
-    background-color: #6c757d;
-}
-
-.estado-tag.nuevo-picking {
-    background-color: #ffc107;
-    color: black;
-}
-
 .estado-tag.picking {
     background-color: #17a2b8;
 }
-
 .estado-tag.entregado {
-    background-color: purple;
-    color: white;
+    background-color: #007bff;
+}
+.estado-tag.sin-stock {
+    background-color: #ffc107;
+    color: #000;
+}
+.estado-tag.anulado {
+    background-color: #dc3545;
+}
+.estado-tag.nuevo-picking {
+    background-color: #6f42c1;
 }
 
-select {
-    padding: 5px;
-    border-radius: 4px;
-}
-
-td.sku {
+.btn-eliminar {
+    background: none;
+    border: none;
     font-size: 1.2em;
-    font-weight: bold;
-    color: #333;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.3s;
+    padding: 0;
 }
 
-input[type="text"],
-input[type="date"],
-input[type="number"] {
-    padding: 8px;
-    margin: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-input:focus {
-    border-color: #007BFF;
-    outline: none;
-}
-
-form {
-    text-align: center;
-}
-
-.filtros {
-    margin-bottom: 20px;
-}
-
-.filtros select,
-.filtros input[type="date"] {
-    margin: 0 10px;
+.btn-eliminar:hover {
+    color: #e74c3c;
 }
