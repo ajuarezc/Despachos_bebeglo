@@ -40,6 +40,11 @@
 
             <button type="submit">Filtrar</button>
         </form>
+
+        <!-- Botón Finalizar Día -->
+        <form method="POST" action="/finalizar_dia" style="margin-top: 15px;" onsubmit="return confirm('¿Estás seguro de finalizar el día? Esto eliminará los pedidos de hoy y los exportará a Excel.');">
+            <button type="submit">📦 Finalizar Día</button>
+        </form>
     </div>
 
     {% for canal, pedidos_por_canal in despachos.items() %}

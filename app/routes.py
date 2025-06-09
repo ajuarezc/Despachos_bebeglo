@@ -1,6 +1,8 @@
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify, send_file
 from .models import get_db
 from datetime import datetime
+import pandas as pd
+import io
 
 main = Blueprint('main', __name__)
 
@@ -118,7 +120,48 @@ def eliminar_pedido(pedido_id):
     db.commit()
     return redirect(url_for("main.ver_despachos"))
 
-# Obtener color por SKU (nuevo endpoint para autocompletado)
+# Finalizar día: exportar pedidos del día a Excel y eliminarlos
+@main.route("/finalizar_dia", methods=["POST"])
+def finalizar_dia():
+    db = get_db()
+    hoy = datetime.today().date()
+
+    # Obtener todos los pedidos del día
+    rows = db.execute("""
+        SELECT p.id AS pedido_id, p.canal, p.fecha,
+               d.sku, d.color, d.cantidad, d.estado
+        FROM pedidos p
+        JOIN detalle_pedidos d ON p.id = d.pedido_id
+        WHERE p.fecha = ?
+    """, (hoy,)).fetchall()
+
+    if not rows:
+        return "No hay pedidos para finalizar hoy.", 400
+
+    # Convertir a DataFrame
+    df = pd.DataFrame(rows, columns=rows[0].keys())
+
+    # Exportar a archivo Excel en memoria
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Despachos del Día")
+    output.seek(0)
+
+    # Eliminar los pedidos del día
+    pedido_ids = set(row["pedido_id"] for row in rows)
+    for pid in pedido_ids:
+        db.execute("DELETE FROM detalle_pedidos WHERE pedido_id = ?", (pid,))
+        db.execute("DELETE FROM pedidos WHERE id = ?", (pid,))
+    db.commit()
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=f"despachos_{hoy}.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+# Obtener color por SKU (autocompletado)
 @main.route("/obtener_color")
 def obtener_color():
     sku = request.args.get("sku")
