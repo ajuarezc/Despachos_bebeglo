@@ -93,18 +93,27 @@ button:hover {
 .estado-tag.pickeado {
     background-color: #28a745;
 }
+
 .estado-tag.sin-stock {
     background-color: #dc3545;
 }
+
 .estado-tag.anulado {
     background-color: #6c757d;
 }
+
 .estado-tag.nuevo-picking {
     background-color: #ffc107;
     color: black;
 }
+
 .estado-tag.picking {
     background-color: #17a2b8;
+}
+
+.estado-tag.entregado {
+    background-color: purple;
+    color: white;
 }
 
 select {
