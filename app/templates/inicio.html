@@ -2,17 +2,73 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Gestión de Despachos</title>
+    <title>Inicio</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .container {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .botones {
+            margin-top: 30px;
+        }
+
+        canvas {
+            max-width: 400px;
+            margin: 20px auto;
+        }
+    </style>
 </head>
 <body>
 
-    <h1>Gestión de Despachos</h1>
+    <div class="container">
+        <h1>Gestión de Despachos</h1>
 
-    <div>
-        <button onclick="location.href='/nuevo'">Ingresar Nuevo Pedido</button>
-        <button onclick="location.href='/despachos'">Ver Pedidos del Día</button>
+        <canvas id="grafico"></canvas>
+
+        <div class="botones">
+            <button onclick="location.href='/nuevo'">Ingresar Nuevo Pedido</button>
+            <button onclick="location.href='/despachos'">Ver Pedidos del Día</button>
+        </div>
     </div>
+
+    <script>
+        const total = {{ total }};
+        const pickeado = {{ pickeado }};
+        const pendiente = total - pickeado;
+
+        const data = {
+            labels: ['Pickeado', 'Pendiente'],
+            datasets: [{
+                label: 'Estado de Pedidos del Día',
+                data: [pickeado, pendiente],
+                backgroundColor: ['#28a745', '#ffc107']
+            }]
+        };
+
+        const config = {
+            type: 'doughnut',
+            data: data,
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `Cantidad de Pedidos del Día: ${total}`,
+                        font: {
+                            size: 18
+                        }
+                    }
+                }
+            }
+        };
+
+        new Chart(
+            document.getElementById('grafico'),
+            config
+        );
+    </script>
 
 </body>
 </html>

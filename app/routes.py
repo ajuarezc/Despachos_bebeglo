@@ -1,14 +1,32 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from .models import get_db
+from datetime import datetime
 
 main = Blueprint('main', __name__)
 
-# Inicio
+# Inicio con gráfico de seguimiento
 @main.route("/")
 def index():
-    return render_template("inicio.html")
+    db = get_db()
+    hoy = datetime.today().date()
 
-# Despachos agrupados por canal y pedido
+    total = db.execute("""
+        SELECT COUNT(DISTINCT p.id) as total
+        FROM pedidos p
+        JOIN detalle_pedidos d ON p.id = d.pedido_id
+        WHERE p.fecha = ?
+    """, (hoy,)).fetchone()["total"]
+
+    pickeado = db.execute("""
+        SELECT COUNT(DISTINCT p.id) as pickeado
+        FROM pedidos p
+        JOIN detalle_pedidos d ON p.id = d.pedido_id
+        WHERE p.fecha = ? AND d.estado = 'PICKEADO'
+    """, (hoy,)).fetchone()["pickeado"]
+
+    return render_template("inicio.html", total=total, pickeado=pickeado)
+
+# Vista de despachos agrupada por canal y pedido
 @main.route("/despachos")
 def ver_despachos():
     db = get_db()
@@ -43,7 +61,7 @@ def ver_despachos():
     cursor = db.execute(query, params)
     resultados = cursor.fetchall()
 
-    # Agrupar por canal y luego por pedido_id
+    # Agrupar por canal y pedido
     despachos = {}
     for row in resultados:
         canal = row["canal"]
@@ -56,7 +74,7 @@ def ver_despachos():
 
     return render_template("base.html", despachos=despachos)
 
-# Nuevo pedido
+# Ingresar nuevo pedido
 @main.route("/nuevo", methods=["GET", "POST"])
 def nuevo_pedido():
     if request.method == "POST":
@@ -83,7 +101,7 @@ def nuevo_pedido():
 
     return render_template("nuevo.html")
 
-# Cambiar estado
+# Cambiar estado de un producto
 @main.route("/actualizar_estado/<int:detalle_id>/<string:nuevo_estado>", methods=["POST"])
 def actualizar_estado(detalle_id, nuevo_estado):
     db = get_db()
@@ -91,7 +109,7 @@ def actualizar_estado(detalle_id, nuevo_estado):
     db.commit()
     return redirect(url_for("main.ver_despachos"))
 
-# Eliminar pedido completo
+# Eliminar un pedido completo
 @main.route("/eliminar_pedido/<int:pedido_id>", methods=["POST"])
 def eliminar_pedido(pedido_id):
     db = get_db()
