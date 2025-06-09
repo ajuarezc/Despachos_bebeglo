@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Nuevo Pedido</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <script>
         function agregarFila() {
             const fila = document.createElement("div");
@@ -15,13 +16,31 @@
             `;
             document.getElementById("productos").appendChild(fila);
         }
+
+        window.onload = function () {
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById("fecha").value = hoy;
+        }
     </script>
 </head>
 <body>
     <h1>Ingresar Nuevo Pedido</h1>
+
     <form method="POST">
-        <label>Canal: <input name="canal" required></label><br>
-        <label>Fecha: <input type="date" name="fecha" required></label><br><br>
+        <label>Canal:
+            <select name="canal" required>
+                <option value="Mercadolibre">Mercadolibre</option>
+                <option value="Bebeglo.cl">Bebeglo.cl</option>
+                <option value="Paris">Paris</option>
+                <option value="Mercadolibre Flex">Mercadolibre Flex</option>
+                <option value="Walmart">Walmart</option>
+                <option value="Falabella">Falabella</option>
+            </select>
+        </label><br>
+
+        <label>Fecha:
+            <input type="date" name="fecha" id="fecha" required>
+        </label><br><br>
 
         <h3>Productos</h3>
         <div id="productos">
@@ -33,6 +52,7 @@
                 <br>
             </div>
         </div>
+
         <button type="button" onclick="agregarFila()">+ Agregar Producto</button><br><br>
         <button type="submit">Guardar Pedido</button>
     </form>

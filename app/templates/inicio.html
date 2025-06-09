@@ -2,11 +2,17 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Inicio</title>
+    <title>Gestión de Despachos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+
     <h1>Gestión de Despachos</h1>
-    <button onclick="location.href='/nuevo'">Ingresar Nuevo Pedido</button>
-    <button onclick="location.href='/despachos'">Ver Pedidos del Día</button>
+
+    <div>
+        <button onclick="location.href='/nuevo'">Ingresar Nuevo Pedido</button>
+        <button onclick="location.href='/despachos'">Ver Pedidos del Día</button>
+    </div>
+
 </body>
 </html>
