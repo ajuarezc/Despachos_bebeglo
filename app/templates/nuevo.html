@@ -8,8 +8,8 @@
         function agregarFila() {
             const fila = document.createElement("div");
             fila.innerHTML = `
-                <input name="sku" placeholder="SKU" required>
-                <input name="color" placeholder="Color" required>
+                <input name="sku" placeholder="SKU" required oninput="buscarColor(this)">
+                <input name="color" placeholder="Color" readonly required>
                 <input name="cantidad" type="number" placeholder="Cantidad" required>
                 <button type="button" onclick="this.parentNode.remove()">❌</button>
                 <br>
@@ -17,9 +17,31 @@
             document.getElementById("productos").appendChild(fila);
         }
 
+        function buscarColor(inputSku) {
+            const sku = inputSku.value.trim();
+            const colorInput = inputSku.nextElementSibling;
+            if (sku.length > 0) {
+                fetch(`/obtener_color?sku=${encodeURIComponent(sku)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        colorInput.value = data.color || '';
+                    });
+            } else {
+                colorInput.value = '';
+            }
+        }
+
         window.onload = function () {
             const hoy = new Date().toISOString().split('T')[0];
             document.getElementById("fecha").value = hoy;
+
+            // Agrega autocompletado a la fila inicial
+            const skuInput = document.querySelector("#productos input[name='sku']");
+            if (skuInput) {
+                skuInput.addEventListener("input", function () {
+                    buscarColor(this);
+                });
+            }
         }
     </script>
 </head>
@@ -45,8 +67,8 @@
         <h3>Productos</h3>
         <div id="productos">
             <div>
-                <input name="sku" placeholder="SKU" required>
-                <input name="color" placeholder="Color" required>
+                <input name="sku" placeholder="SKU" required oninput="buscarColor(this)">
+                <input name="color" placeholder="Color" readonly required>
                 <input name="cantidad" type="number" placeholder="Cantidad" required>
                 <button type="button" onclick="this.parentNode.remove()">❌</button>
                 <br>

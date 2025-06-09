@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 from .models import get_db
 from datetime import datetime
 
@@ -117,3 +117,12 @@ def eliminar_pedido(pedido_id):
     db.execute("DELETE FROM pedidos WHERE id = ?", (pedido_id,))
     db.commit()
     return redirect(url_for("main.ver_despachos"))
+
+# Obtener color por SKU (nuevo endpoint para autocompletado)
+@main.route("/obtener_color")
+def obtener_color():
+    sku = request.args.get("sku")
+    db = get_db()
+    result = db.execute("SELECT color FROM color WHERE sku = ?", (sku,)).fetchone()
+    color = result["color"] if result else ""
+    return jsonify({"color": color})

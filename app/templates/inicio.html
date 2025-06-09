@@ -35,8 +35,8 @@
     </div>
 
     <script>
-        const total = {{ total }};
-        const pickeado = {{ pickeado }};
+        const total = {{ total | tojson }};
+        const pickeado = {{ pickeado | tojson }};
         const pendiente = total - pickeado;
 
         const data = {
